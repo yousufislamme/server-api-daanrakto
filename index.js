@@ -10,7 +10,7 @@ const uri = process.env.MONGO_URI || `mongodb+srv://${process.env.MONGO_NAME}:${
 app.use(cors());
 app.use(express.json());
 
-let bloodDataCollection; // Declare bloodDataCollection
+let bloodDataCollection;
 
 const client = new MongoClient(uri, {
    serverApi: {
@@ -28,10 +28,15 @@ async function run() {
       console.log("Connected to MongoDB!");
    } catch (error) {
       console.error("MongoDB connection error:", error);
+      // Add more detailed error logging here
+      console.error(`Error connecting to MongoDB: ${error.message}`);
    }
 }
 
-run().catch(console.dir);
+run().catch((error) => {
+   console.error("Error running application:", error);
+   process.exit(1);
+});
 
 // Routes
 app.get("/", (req, res) => {
@@ -52,7 +57,7 @@ app.get("/blood_api", async (req, res) => {
 app.get("/blood_api/:id", async (req, res) => {
    const id = req.params.id;
    try {
-      const query = { _id: new ObjectId(id) }; // Ensure valid ObjectId
+      const query = { _id: new ObjectId(id) };
       const result = await bloodDataCollection.findOne(query);
       if (result) {
          res.send(result);
@@ -74,7 +79,6 @@ app.post("/blood_api", async (req, res) => {
       res.status(500).send({ message: "Error inserting blood data", error });
    }
 });
-
 // Start server
 app.listen(port, () => {
    console.log(`Server running on http://localhost:${port}`);
@@ -82,7 +86,11 @@ app.listen(port, () => {
 
 // Close MongoDB connection when app terminates
 process.on('SIGINT', async () => {
-   await client.close();
-   console.log('MongoDB client closed');
+   try {
+      await client.close();
+      console.log('MongoDB client closed');
+   } catch (error) {
+      console.error("Error closing MongoDB client:", error);
+   }
    process.exit(0);
 });
