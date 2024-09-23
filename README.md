@@ -1,1 +1,1 @@
-server api ==> `[text](https://server-api-daanrakto.vercel.app/blood_api)`
+server api ==> `https://server-api-daanrakto.vercel.app/blood_api`
